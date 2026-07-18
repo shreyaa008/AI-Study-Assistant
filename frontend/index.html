@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AI Study Assistant</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ============ SIDEBAR : NOTE CATALOG ============ -->
+  <aside class="sidebar">
+    <div class="brand">
+      <span class="brand-mark">§</span>
+      <div>
+        <h1>Study Assistant</h1>
+        <p class="brand-sub">Notes → Summaries → Answers → Quizzes</p>
+      </div>
+    </div>
+
+    <div class="student-field">
+      <label for="studentIdInput">Student ID</label>
+      <input type="text" id="studentIdInput" value="shreya01" spellcheck="false" />
+    </div>
+
+    <button class="btn btn-primary btn-block" id="showUploadBtn">+ Add a note</button>
+
+    <div class="catalog-label">
+      <span>My notes</span>
+      <span class="catalog-count" id="noteCount">0</span>
+    </div>
+
+    <div class="catalog" id="catalog">
+      <!-- Note index cards get inserted here by app.js -->
+      <p class="catalog-empty" id="catalogEmpty">No notes yet. Add one to get started.</p>
+    </div>
+  </aside>
+
+  <!-- ============ MAIN PANE ============ -->
+  <main class="main">
+
+    <!-- ---- Upload panel ---- -->
+    <section class="panel" id="uploadPanel">
+      <div class="panel-head">
+        <p class="eyebrow">New note</p>
+        <h2>Add a study note</h2>
+        <p class="panel-sub">Plain text (.txt) files only for now — pull in your notes and start working with them.</p>
+      </div>
+
+      <form id="uploadForm" class="upload-form">
+        <label class="dropzone" id="dropzone" for="fileInput">
+          <input type="file" id="fileInput" accept=".txt" hidden />
+          <span class="dropzone-icon">⤒</span>
+          <span class="dropzone-text" id="dropzoneText">Choose a .txt file or drop it here</span>
+        </label>
+        <button type="submit" class="btn btn-highlight btn-block" id="uploadSubmitBtn">Upload note</button>
+        <p class="form-status" id="uploadStatus"></p>
+      </form>
+    </section>
+
+    <!-- ---- Note workspace (hidden until a note is selected) ---- -->
+    <section class="panel" id="notePanel" hidden>
+
+      <div class="panel-head">
+        <p class="eyebrow" id="noteEyebrow">NOTE</p>
+        <h2 id="noteTitle">—</h2>
+      </div>
+
+      <nav class="tabs" id="tabs">
+        <button class="tab active" data-tab="summary">Summary</button>
+        <button class="tab" data-tab="ask">Ask</button>
+        <button class="tab" data-tab="quiz">Quiz</button>
+        <button class="tab" data-tab="flashcards">Flashcards</button>
+      </nav>
+
+      <!-- Summary tab -->
+      <div class="tab-panel active" id="tab-summary">
+        <button class="btn btn-teal" id="generateSummaryBtn">Generate summary</button>
+        <div class="result-box" id="summaryResult">
+          <p class="result-placeholder">No summary yet — generate one above.</p>
+        </div>
+      </div>
+
+      <!-- Ask tab -->
+      <div class="tab-panel" id="tab-ask">
+        <form id="askForm" class="ask-form">
+          <input type="text" id="questionInput" placeholder="Ask something about this note…" autocomplete="off" />
+          <button type="submit" class="btn btn-teal">Ask</button>
+        </form>
+        <div class="qa-log" id="qaLog">
+          <p class="result-placeholder">Your questions and answers will appear here.</p>
+        </div>
+      </div>
+
+      <!-- Quiz tab -->
+      <div class="tab-panel" id="tab-quiz">
+        <button class="btn btn-teal" id="generateQuizBtn">Generate quiz</button>
+        <div class="result-box" id="quizResult">
+          <p class="result-placeholder">No quiz yet — generate one above.</p>
+        </div>
+      </div>
+
+      <!-- Flashcards tab -->
+      <div class="tab-panel" id="tab-flashcards">
+        <button class="btn btn-teal" id="generateFlashcardsBtn">Generate flashcards</button>
+        <div class="result-box" id="flashcardsResult">
+          <p class="result-placeholder">No flashcards yet — generate some above.</p>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

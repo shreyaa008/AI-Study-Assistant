@@ -1,0 +1,3 @@
+boto3 is pre-installed in the AWS Lambda Python runtime, so no extra
+packages are required for this function. This file is kept for
+consistency across all lambda_functions/ folders and for documentation.

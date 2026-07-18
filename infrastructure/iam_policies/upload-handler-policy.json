@@ -1,0 +1,21 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "WriteNotesToS3",
+      "Effect": "Allow",
+      "Action": [
+        "s3:PutObject"
+      ],
+      "Resource": "arn:aws:s3:::ai-study-assistant-notes-shreya/*"
+    },
+    {
+      "Sid": "WriteUploadRecordToDynamoDB",
+      "Effect": "Allow",
+      "Action": [
+        "dynamodb:PutItem"
+      ],
+      "Resource": "arn:aws:dynamodb:us-east-1:400854830543:table/StudyAssistantData"
+    }
+  ]
+}

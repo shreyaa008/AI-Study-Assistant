@@ -1,0 +1,514 @@
+/* =========================================================
+   AI Study Assistant — visual system
+   Palette:
+     --paper      warm background, like notebook paper
+     --ink        primary text
+     --ink-soft   secondary text
+     --navy       structural color (sidebar, headings)
+     --highlight  marker-yellow accent, primary actions
+     --teal       AI-action accent (summarize / ask / quiz)
+     --rule       hairline rule / divider color
+   Type:
+     Fraunces      display serif — headings
+     Inter         body sans
+     IBM Plex Mono ids, statuses, small data labels
+   ========================================================= */
+
+:root {
+  --paper: #faf7ef;
+  --card: #ffffff;
+  --ink: #1c1b18;
+  --ink-soft: #6b675c;
+  --navy: #212a45;
+  --navy-soft: #3a4468;
+  --highlight: #f4c53d;
+  --highlight-ink: #4a3600;
+  --teal: #1f7a6c;
+  --teal-dark: #145b50;
+  --rule: #e4dfd0;
+  --danger: #b3261e;
+
+  --tab-colors: #e07a5f, #3d84a8, #6a994e, #b56576, #8b6bb0;
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --shadow-card: 0 1px 2px rgba(28, 27, 24, 0.06), 0 4px 14px rgba(28, 27, 24, 0.06);
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: 'Inter', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Subtle notebook-rule texture behind the whole app */
+body {
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent 35px,
+    var(--rule) 35px,
+    var(--rule) 36px
+  );
+}
+
+h1, h2, h3 { font-family: 'Fraunces', serif; margin: 0; color: var(--navy); }
+
+button { font-family: inherit; cursor: pointer; }
+input { font-family: inherit; }
+
+/* ============ LAYOUT ============ */
+
+.app {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  min-height: 100vh;
+}
+
+.sidebar {
+  background: var(--navy);
+  color: #fff;
+  padding: 28px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.main {
+  padding: 44px 48px;
+  max-width: 760px;
+}
+
+/* ============ SIDEBAR ============ */
+
+.brand {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.brand-mark {
+  font-family: 'Fraunces', serif;
+  font-size: 30px;
+  font-weight: 700;
+  color: var(--highlight);
+  line-height: 1;
+}
+
+.brand h1 {
+  color: #fff;
+  font-size: 19px;
+  font-weight: 600;
+}
+
+.brand-sub {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: #b7bdd3;
+  font-family: 'IBM Plex Mono', monospace;
+}
+
+.student-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.student-field label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #9aa1bd;
+  font-family: 'IBM Plex Mono', monospace;
+}
+
+.student-field input {
+  background: var(--navy-soft);
+  border: 1px solid #4c567e;
+  color: #fff;
+  border-radius: var(--radius-sm);
+  padding: 9px 10px;
+  font-size: 14px;
+}
+
+.student-field input:focus {
+  outline: 2px solid var(--highlight);
+  outline-offset: 1px;
+}
+
+.catalog-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #9aa1bd;
+  margin-top: 6px;
+}
+
+.catalog-count {
+  background: var(--navy-soft);
+  border-radius: 20px;
+  padding: 1px 8px;
+  font-family: 'IBM Plex Mono', monospace;
+}
+
+.catalog {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.catalog-empty {
+  font-size: 13px;
+  color: #8890ac;
+  line-height: 1.5;
+}
+
+/* Index card — the signature element */
+.index-card {
+  position: relative;
+  background: var(--navy-soft);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px 10px 30px;
+  cursor: pointer;
+  transition: transform 0.12s ease, background 0.12s ease;
+  border: 1px solid transparent;
+}
+
+.index-card:hover { transform: translateX(2px); background: #414c78; }
+
+.index-card.selected {
+  background: #fff;
+  border-color: var(--highlight);
+}
+
+.index-card.selected .index-card-name { color: var(--ink); }
+.index-card.selected .index-card-meta { color: var(--ink-soft); }
+
+.index-card::before {
+  /* punch hole */
+  content: "";
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--paper);
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,0.15);
+}
+
+.index-card-tab {
+  position: absolute;
+  left: 0;
+  top: 8px;
+  bottom: 8px;
+  width: 4px;
+  border-radius: 0 3px 3px 0;
+}
+
+.index-card-name {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.index-card-meta {
+  display: block;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10.5px;
+  color: #a7adc7;
+  margin-top: 2px;
+}
+
+/* ============ BUTTONS ============ */
+
+.btn {
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 10px 16px;
+  font-size: 13.5px;
+  font-weight: 600;
+  transition: filter 0.12s ease, transform 0.05s ease;
+}
+
+.btn:active { transform: translateY(1px); }
+.btn-block { width: 100%; }
+
+.btn-primary {
+  background: var(--highlight);
+  color: var(--highlight-ink);
+}
+.btn-primary:hover { filter: brightness(1.05); }
+
+.btn-highlight {
+  background: var(--navy);
+  color: #fff;
+}
+.btn-highlight:hover { filter: brightness(1.15); }
+
+.btn-teal {
+  background: var(--teal);
+  color: #fff;
+  margin-bottom: 16px;
+}
+.btn-teal:hover { background: var(--teal-dark); }
+
+.btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* ============ PANELS ============ */
+
+.panel-head { margin-bottom: 22px; }
+
+.eyebrow {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--teal-dark);
+  margin: 0 0 6px;
+}
+
+.panel-head h2 { font-size: 26px; }
+
+.panel-sub {
+  color: var(--ink-soft);
+  font-size: 14px;
+  margin-top: 8px;
+  line-height: 1.5;
+}
+
+/* ---- Upload ---- */
+
+.upload-form {
+  background: var(--card);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-md);
+  padding: 22px;
+  box-shadow: var(--shadow-card);
+}
+
+.dropzone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  border: 2px dashed var(--rule);
+  border-radius: var(--radius-sm);
+  padding: 34px 16px;
+  margin-bottom: 16px;
+  cursor: pointer;
+  transition: border-color 0.12s ease, background 0.12s ease;
+}
+
+.dropzone:hover, .dropzone.drag-over {
+  border-color: var(--highlight);
+  background: #fffaee;
+}
+
+.dropzone-icon { font-size: 26px; color: var(--teal); }
+.dropzone-text { font-size: 13.5px; color: var(--ink-soft); text-align: center; }
+
+.form-status {
+  font-size: 13px;
+  margin: 12px 0 0;
+  min-height: 18px;
+}
+.form-status.success { color: var(--teal-dark); }
+.form-status.error { color: var(--danger); }
+
+/* ---- Tabs ---- */
+
+.tabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid var(--rule);
+  margin-bottom: 20px;
+}
+
+.tab {
+  background: none;
+  border: none;
+  padding: 10px 14px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--ink-soft);
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+}
+
+.tab.active {
+  color: var(--teal-dark);
+  border-bottom-color: var(--teal);
+}
+
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+/* ---- Result boxes ---- */
+
+.result-box {
+  background: var(--card);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-md);
+  padding: 20px;
+  min-height: 80px;
+  box-shadow: var(--shadow-card);
+  font-size: 14.5px;
+  line-height: 1.65;
+}
+
+.result-placeholder { color: var(--ink-soft); font-size: 13.5px; margin: 0; }
+
+.result-box ul { margin: 0; padding-left: 20px; }
+.result-box li { margin-bottom: 6px; }
+
+/* ---- Ask tab ---- */
+
+.ask-form {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.ask-form input {
+  flex: 1;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  font-size: 14px;
+  background: var(--card);
+}
+
+.ask-form input:focus { outline: 2px solid var(--teal); outline-offset: 1px; }
+
+.qa-log { display: flex; flex-direction: column; gap: 12px; }
+
+.qa-item {
+  background: var(--card);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-md);
+  padding: 16px 18px;
+  box-shadow: var(--shadow-card);
+}
+
+.qa-question {
+  font-weight: 600;
+  font-size: 14px;
+  margin: 0 0 8px;
+  color: var(--navy);
+}
+
+.qa-question::before { content: "Q · "; color: var(--teal); font-family: 'IBM Plex Mono', monospace; }
+
+.qa-answer { margin: 0; font-size: 14px; line-height: 1.6; }
+
+/* ---- Quiz ---- */
+
+.quiz-question {
+  margin-bottom: 18px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--rule);
+}
+.quiz-question:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+
+.quiz-question p { margin: 0 0 8px; font-weight: 600; }
+
+.quiz-question ol { margin: 0; padding-left: 20px; }
+.quiz-question li { margin-bottom: 4px; }
+
+.quiz-answer {
+  margin-top: 8px;
+  font-size: 13px;
+  font-family: 'IBM Plex Mono', monospace;
+  color: var(--teal-dark);
+}
+
+/* ---- Flashcards ---- */
+
+.flashcard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 14px;
+}
+
+.flashcard {
+  perspective: 1000px;
+  height: 130px;
+  cursor: pointer;
+}
+
+.flashcard-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transition: transform 0.5s;
+  transform-style: preserve-3d;
+}
+
+.flashcard.flipped .flashcard-inner { transform: rotateY(180deg); }
+
+.flashcard-face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  border-radius: var(--radius-sm);
+  padding: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-size: 13.5px;
+  line-height: 1.4;
+  box-shadow: var(--shadow-card);
+}
+
+.flashcard-front {
+  background: var(--navy);
+  color: #fff;
+}
+
+.flashcard-back {
+  background: var(--highlight);
+  color: var(--highlight-ink);
+  transform: rotateY(180deg);
+  font-weight: 500;
+}
+
+/* ============ RESPONSIVE ============ */
+
+@media (max-width: 760px) {
+  .app { grid-template-columns: 1fr; }
+  .sidebar { flex-direction: column; }
+  .main { padding: 28px 20px; }
+}
+
+/* ============ ACCESSIBILITY ============ */
+
+button:focus-visible,
+input:focus-visible,
+.index-card:focus-visible {
+  outline: 2px solid var(--highlight);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}
