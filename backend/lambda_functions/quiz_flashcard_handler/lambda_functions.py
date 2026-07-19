@@ -51,13 +51,17 @@ def response(status_code, body_dict):
     }
 
 
-def invoke_claude(prompt, max_tokens=1200):
+def invoke_model(prompt, max_tokens=1200):
+    """
+    Calls Amazon Nova via Bedrock (see summarize_handler for why we
+    switched from Claude to Nova). Nova's request/response shape differs
+    from Claude's Messages API.
+    """
     request_body = {
-        "anthropic_version": "bedrock-2023-05-31",
-        "max_tokens": max_tokens,
         "messages": [
-            {"role": "user", "content": prompt}
+            {"role": "user", "content": [{"text": prompt}]}
         ],
+        "inferenceConfig": {"maxTokens": max_tokens},
     }
 
     bedrock_response = bedrock_client.invoke_model(
@@ -66,7 +70,7 @@ def invoke_claude(prompt, max_tokens=1200):
     )
 
     response_body = json.loads(bedrock_response["body"].read())
-    return response_body["content"][0]["text"]
+    return response_body["output"]["message"]["content"][0]["text"]
 
 
 def extract_json(raw_text):
@@ -125,7 +129,7 @@ def generate_quiz(note_text):
         '"correct_answer": "A"}]}\n\n'
         f"NOTES:\n{note_text}"
     )
-    raw = invoke_claude(prompt, max_tokens=1200)
+    raw = invoke_model(prompt, max_tokens=1200)
     parsed = extract_json(raw)
     return parsed["quiz"]
 
@@ -140,7 +144,7 @@ def generate_flashcards(note_text):
         '{"flashcards": [{"front": "...", "back": "..."}]}\n\n'
         f"NOTES:\n{note_text}"
     )
-    raw = invoke_claude(prompt, max_tokens=1200)
+    raw = invoke_model(prompt, max_tokens=1200)
     parsed = extract_json(raw)
     return parsed["flashcards"]
 
@@ -158,7 +162,7 @@ def lambda_handler(event, context):
         # integration puts the matched path in event["path"] (or
         # event["resource"] / event["rawPath"] depending on API type).
         path = event.get("path") or event.get("rawPath") or ""
-        is_flashcards_request = "flashcards" in path
+        is_flashcards_request = "flashcard" in path
 
         note_text, error_flag = get_note_text(student_id, note_id)
 

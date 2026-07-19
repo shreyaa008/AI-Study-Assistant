@@ -54,13 +54,17 @@ def response(status_code, body_dict):
     }
 
 
-def invoke_claude(prompt, max_tokens=600):
+def invoke_model(prompt, max_tokens=600):
+    """
+    Calls Amazon Nova via Bedrock (see summarize_handler for why we
+    switched from Claude to Nova). Nova's request/response shape differs
+    from Claude's Messages API.
+    """
     request_body = {
-        "anthropic_version": "bedrock-2023-05-31",
-        "max_tokens": max_tokens,
         "messages": [
-            {"role": "user", "content": prompt}
+            {"role": "user", "content": [{"text": prompt}]}
         ],
+        "inferenceConfig": {"maxTokens": max_tokens},
     }
 
     bedrock_response = bedrock_client.invoke_model(
@@ -69,7 +73,7 @@ def invoke_claude(prompt, max_tokens=600):
     )
 
     response_body = json.loads(bedrock_response["body"].read())
-    return response_body["content"][0]["text"]
+    return response_body["output"]["message"]["content"][0]["text"]
 
 
 def lambda_handler(event, context):
@@ -127,7 +131,7 @@ def lambda_handler(event, context):
             f"QUESTION: {question}"
         )
 
-        answer_text = invoke_claude(prompt, max_tokens=600)
+        answer_text = invoke_model(prompt, max_tokens=600)
 
         # Step 4: save this Q&A pair as history. Note the SK uses a
         # timestamp, so multiple questions about the same note each get

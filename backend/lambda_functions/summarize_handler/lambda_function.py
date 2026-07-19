@@ -54,14 +54,21 @@ def response(status_code, body_dict):
     }
 
 
-def invoke_claude(prompt, max_tokens=1000):
-    """Calls Claude via Bedrock and returns just the reply text."""
+def invoke_model(prompt, max_tokens=1000):
+    """
+    Calls Amazon Nova via Bedrock. Nova uses a different request/response
+    shape than Claude's Messages API:
+      - request:  {"messages": [...], "inferenceConfig": {"maxTokens": ...}}
+      - response: response["output"]["message"]["content"][0]["text"]
+    (Switched from Claude to Nova because of a Marketplace billing
+    restriction on this AWS account - see README. Nova is Amazon's own
+    model, so it doesn't require an AWS Marketplace subscription.)
+    """
     request_body = {
-        "anthropic_version": "bedrock-2023-05-31",
-        "max_tokens": max_tokens,
         "messages": [
-            {"role": "user", "content": prompt}
+            {"role": "user", "content": [{"text": prompt}]}
         ],
+        "inferenceConfig": {"maxTokens": max_tokens},
     }
 
     bedrock_response = bedrock_client.invoke_model(
@@ -70,7 +77,7 @@ def invoke_claude(prompt, max_tokens=1000):
     )
 
     response_body = json.loads(bedrock_response["body"].read())
-    return response_body["content"][0]["text"]
+    return response_body["output"]["message"]["content"][0]["text"]
 
 
 def lambda_handler(event, context):
@@ -121,7 +128,7 @@ def lambda_handler(event, context):
             f"NOTES:\n{note_text}"
         )
 
-        summary_text = invoke_claude(prompt, max_tokens=500)
+        summary_text = invoke_model(prompt, max_tokens=500)
 
         # Step 4: save the summary so it doesn't need regenerating every time
         # the student revisits this note.
