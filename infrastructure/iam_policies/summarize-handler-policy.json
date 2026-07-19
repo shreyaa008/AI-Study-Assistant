@@ -24,10 +24,7 @@
       "Action": [
         "bedrock:InvokeModel"
       ],
-      "Resource": [
-        "arn:aws:bedrock:us-east-1::foundation-model/anthropic.claude-haiku-4-5-20251001-v1:0",
-        "arn:aws:bedrock:us-east-1:400854830543:inference-profile/us.anthropic.claude-haiku-4-5-20251001-v1:0"
-      ]
+      "Resource": "arn:aws:bedrock:us-east-1::foundation-model/amazon.nova-micro-v1:0"
     }
   ]
 }
