@@ -353,7 +353,7 @@ generateFlashcardsBtn.addEventListener("click", async () => {
   flashcardsResult.innerHTML = `<p class="result-placeholder">Generating flashcards…</p>`;
 
   try {
-    const result = await apiPost("/flashcards", {
+    const result = await apiPost("/flashcard", {
       student_id: getStudentId(),
       note_id: selectedNoteId,
     });
